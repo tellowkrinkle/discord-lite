@@ -32,4 +32,4 @@ jobs:
           </plist>
           EOF
 
-          xcodebuild clean build && exit ${PIPESTATUS[0]}
+          xcodebuild ARCHS="ppc x86_64" clean build && exit ${PIPESTATUS[0]}
