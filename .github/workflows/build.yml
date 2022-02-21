@@ -15,7 +15,7 @@ jobs:
           mkdir XcodeLegacy
           cd XcodeLegacy
           curl -O https://raw.githubusercontent.com/devernay/xcodelegacy/master/XcodeLegacy.sh
-          curl https://github.com/tellowkrinkle/DLBuildTools/releases/download/v0.1/DLBuildTools.tar | tar -x
+          curl -L https://github.com/tellowkrinkle/DLBuildTools/releases/download/v0.1/DLBuildTools.tar | tar -x
           sudo bash XcodeLegacy.sh -compilers -osx105 -osx107 install
       - name: Set Default Scheme
         run: |
