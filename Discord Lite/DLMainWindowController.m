@@ -433,7 +433,7 @@ const NSTimeInterval TYPING_SEND_INTERVAL = 8.0;
 }
 
 -(void)initialDataWasReceived {
-    [NSThread detachNewThreadSelector:@selector(populateUserServers) toTarget:self withObject:nil];
+    [self populateUserServers];
     [self loadMainContent];
 }
 
@@ -461,9 +461,9 @@ const NSTimeInterval TYPING_SEND_INTERVAL = 8.0;
     [chatScrollView setContent:[NSArray array]];
     
     if (item == me) {
-        [NSThread detachNewThreadSelector:@selector(loadDirectMessageChannels) toTarget:self withObject:nil];
+        [self loadDirectMessageChannels];
     } else {
-        [NSThread detachNewThreadSelector:@selector(loadChannelsForServerItem:) toTarget:self withObject:item];
+        [self loadChannelsForServerItem:item];
     }
     
 }
