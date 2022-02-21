@@ -19,4 +19,17 @@ jobs:
           curl -L https://github.com/tellowkrinkle/DLBuildTools/releases/download/v0.1/DLBuildTools.tar | tar -x
           sudo bash XcodeLegacy.sh -compilers -osx105 -osx107 install
       - name: Build
-        run: xcodebuild clean build && exit ${PIPESTATUS[0]}
+        run: |
+          # Need to use legacy build system
+          cat > Discord\ Lite.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+                  <key>BuildSystemType</key>
+                  <string>Original</string>
+          </dict>
+          </plist>
+          EOF
+
+          xcodebuild clean build && exit ${PIPESTATUS[0]}
