@@ -12,8 +12,10 @@ jobs:
         uses: actions/checkout@v2
       - name: XcodeLegacy
         run: |
+          mkdir XcodeLegacy
+          cd XcodeLegacy
           curl -O https://raw.githubusercontent.com/devernay/xcodelegacy/master/XcodeLegacy.sh
-          bash XcodeLegacy.sh -compilers -osx105 -osx107 buildPackages
+          curl https://github.com/tellowkrinkle/DLBuildTools/releases/download/v0.1/DLBuildTools.tar | tar -x
           sudo bash XcodeLegacy.sh -compilers -osx105 -osx107 install
       - name: Set Default Scheme
         run: |
