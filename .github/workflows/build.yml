@@ -13,7 +13,7 @@ jobs:
       - name: XcodeLegacy
         run: |
           curl -O https://raw.githubusercontent.com/devernay/xcodelegacy/master/XcodeLegacy.sh
-          bash XcodeLegacy.sh -compilers -osx105 -osx107
+          sudo bash XcodeLegacy.sh install -compilers -osx105 -osx107
       - name: Set Default Scheme
         run: |
           scheme_list=$(xcodebuild -list -json | tr -d "\n")
