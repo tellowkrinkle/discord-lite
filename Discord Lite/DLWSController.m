@@ -48,7 +48,7 @@ static DLWSController* sharedObject = nil;
     if(heartbeatResponseReceived) {
         heartbeatResponseReceived = NO;
         NSDictionary *response = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:[NSNumber numberWithInt:OPCodeHeartbeat], [NSNumber numberWithInt:sequenceNumber], nil] forKeys:[NSArray arrayWithObjects:@kWSOperation, @kWSData ,nil]];
-        NSString *toSend = [[NSString alloc] initWithData:[[CJSONSerializer serializer] serializeDictionary:response error:nil] encoding:NSUTF8StringEncoding];
+        NSString *toSend = [[[NSString alloc] initWithData:[[CJSONSerializer serializer] serializeDictionary:response error:nil] encoding:NSUTF8StringEncoding] autorelease];
         [webSocket sendText:toSend];
     } else {
         shouldResume = YES;
@@ -58,42 +58,42 @@ static DLWSController* sharedObject = nil;
 }
 
 -(void)updateWSForDirectMessageChannel:(DLChannel *)c {
-    NSMutableDictionary *d = [[NSMutableDictionary alloc] init];
-    NSMutableDictionary *data = [[NSMutableDictionary alloc] init];
+    NSMutableDictionary *d = [[[NSMutableDictionary alloc] init] autorelease];
+    NSMutableDictionary *data = [[[NSMutableDictionary alloc] init] autorelease];
     [data setObject:[c channelID] forKey:@"channel_id"];
     [d setObject:[NSNumber numberWithInt:OPCodeDMParticipantOp] forKey:@kWSOperation];
     [d setObject:data forKey:@kWSData];
-    NSString *str = [[NSString alloc] initWithData:[[CJSONSerializer serializer] serializeDictionary:d error:nil] encoding:NSUTF8StringEncoding];
+    NSString *str = [[[NSString alloc] initWithData:[[CJSONSerializer serializer] serializeDictionary:d error:nil] encoding:NSUTF8StringEncoding] autorelease];
     [webSocket sendText:str];
 }
 
 -(void)updateWSForChannel:(DLChannel *)c inServer:(DLServer *)s {
-    NSMutableDictionary *data = [[NSMutableDictionary alloc] init];
+    NSMutableDictionary *data = [[[NSMutableDictionary alloc] init] autorelease];
     [data setObject:[s serverID] forKey:@"guild_id"];
     [data setObject:[NSNumber numberWithBool:YES] forKey:@"typing"];
     [data setObject:[NSNumber numberWithBool:NO] forKey:@"activities"];
     [data setObject:[NSNumber numberWithBool:NO] forKey:@"threads"];
-    NSArray *channelInfo = [NSArray arrayWithObjects:[[NSArray alloc] initWithObjects:[NSNumber numberWithInt:0], [NSNumber numberWithInt:99], nil], nil];
-    NSMutableDictionary *channels = [[NSMutableDictionary alloc] init];
+    NSArray *channelInfo = [NSArray arrayWithObjects:[[[NSArray alloc] initWithObjects:[NSNumber numberWithInt:0], [NSNumber numberWithInt:99], nil] autorelease], nil];
+    NSMutableDictionary *channels = [[[NSMutableDictionary alloc] init] autorelease];
     [channels setObject:channelInfo forKey:[c channelID]];
-    NSMutableDictionary *d = [[NSMutableDictionary alloc] init];
+    NSMutableDictionary *d = [[[NSMutableDictionary alloc] init] autorelease];
     [data setObject:channels forKey:@"channels"];
     [d setObject:data forKey:@kWSData];
     [d setObject:[NSNumber numberWithInt:OPCodeServerMemberOp] forKey:@kWSOperation];
-    NSString *str = [[NSString alloc] initWithData:[[CJSONSerializer serializer] serializeDictionary:d error:nil] encoding:NSUTF8StringEncoding];
+    NSString *str = [[[NSString alloc] initWithData:[[CJSONSerializer serializer] serializeDictionary:d error:nil] encoding:NSUTF8StringEncoding] autorelease];
     [webSocket sendText:str];
 }
 
 -(void)queryServer:(DLServer *)s forMembersContainingUsername:(NSString *)username {
-    NSMutableDictionary *data = [[NSMutableDictionary alloc] init];
+    NSMutableDictionary *data = [[[NSMutableDictionary alloc] init] autorelease];
     [data setObject:[NSArray arrayWithObject:[s serverID]] forKey:@"guild_id"];
     [data setObject:username forKey:@"query"];
     [data setObject:[NSNumber numberWithInt:10] forKey:@"limit"];
     [data setObject:[NSNumber numberWithBool:YES] forKey:@"presences"];
-    NSMutableDictionary *d = [[NSMutableDictionary alloc] init];
+    NSMutableDictionary *d = [[[NSMutableDictionary alloc] init] autorelease];
     [d setObject:data forKey:@kWSData];
     [d setObject:[NSNumber numberWithInt:OPCodeQueryServerMembers] forKey:@kWSOperation];
-    NSString *str = [[NSString alloc] initWithData:[[CJSONSerializer serializer] serializeDictionary:d error:nil] encoding:NSUTF8StringEncoding];
+    NSString *str = [[[NSString alloc] initWithData:[[CJSONSerializer serializer] serializeDictionary:d error:nil] encoding:NSUTF8StringEncoding] autorelease];
     [webSocket sendText:str];
 }
 
@@ -116,9 +116,9 @@ static DLWSController* sharedObject = nil;
             } else if ([type isEqualToString:@"READY"]) {
                 NSDictionary *wsData = [res objectForKey:@kWSData];
                 sessionID = [[wsData objectForKey:@"session_id"] retain];
-                [delegate wsDidReceiveUserSettings:[[DLUserSettings alloc] initWithDict:[wsData
-                                                                                         objectForKey:@"user_settings"]]];
-                [delegate wsDidReceiveUserData:[[DLUser alloc] initWithDict:[wsData objectForKey:@"user"]]];
+                [delegate wsDidReceiveUserSettings:
+                    [[[DLUserSettings alloc] initWithDict:[wsData objectForKey:@"user_settings"]] autorelease]];
+                [delegate wsDidReceiveUserData:[[[DLUser alloc] initWithDict:[wsData objectForKey:@"user"]] autorelease]];
                 [delegate wsDidReceiveServerData:[wsData objectForKey:@"guilds"]];
                 [delegate wsDidReceivePrivateChannelData:[wsData objectForKey:@"private_channels"]];
                 [delegate wsDidLoadAllData];
@@ -130,7 +130,7 @@ static DLWSController* sharedObject = nil;
                 NSMutableDictionary *messageData = [[[NSMutableDictionary alloc] init] autorelease];
                 [messageData setObject:[wsData objectForKey:@"message_id"] forKey:@"id"];
                 [messageData setObject:[wsData objectForKey:@"channel_id"] forKey:@"channel_id"];
-                [delegate wsDidAcknowledgeMessage:[[DLMessage alloc] initWithDict:messageData]];
+                [delegate wsDidAcknowledgeMessage:[[[DLMessage alloc] initWithDict:messageData] autorelease]];
             } else if ([type isEqualToString:@"TYPING_START"]) {
                 NSDictionary *wsData = [res objectForKey:@kWSData];
                 if ([wsData objectForKey:@"guild_id"]) {
@@ -152,39 +152,39 @@ static DLWSController* sharedObject = nil;
             heartbeatResponseReceived = YES;
             if (shouldResume ) {
                 shouldResume = NO;
-                NSMutableDictionary *d = [[NSMutableDictionary alloc] init];
+                NSMutableDictionary *d = [[[NSMutableDictionary alloc] init] autorelease];
                 [d setObject:[NSNumber numberWithInt:OPCodeResume] forKey:@kWSOperation];
-                NSDictionary *data = [[NSDictionary alloc] initWithObjects:[NSArray arrayWithObjects:token, sessionID, [NSNumber numberWithInt:sequenceNumber], nil] forKeys:[NSArray arrayWithObjects:@"token", @"session_id", @"seq", nil]];
+                NSDictionary *data = [[[NSDictionary alloc] initWithObjects:[NSArray arrayWithObjects:token, sessionID, [NSNumber numberWithInt:sequenceNumber], nil] forKeys:[NSArray arrayWithObjects:@"token", @"session_id", @"seq", nil]] autorelease];
                 [d setObject:data forKey:@kWSData];
-                NSString *str = [[NSString alloc] initWithData:[[CJSONSerializer serializer] serializeDictionary:d error:nil] encoding:NSUTF8StringEncoding];
+                NSString *str = [[[NSString alloc] initWithData:[[CJSONSerializer serializer] serializeDictionary:d error:nil] encoding:NSUTF8StringEncoding] autorelease];
                 [webSocket sendText:str];
             } else {
                 NSDictionary *wsData = [res objectForKey:@kWSData];
                 heartbeatInterval = [[wsData objectForKey:@"heartbeat_interval"] intValue];
                 [NSTimer scheduledTimerWithTimeInterval:heartbeatInterval/1000 target:self selector:@selector(sendWSHeartbeat) userInfo:nil repeats:YES];
                 
-                NSMutableDictionary *d = [[NSMutableDictionary alloc] init];
+                NSMutableDictionary *d = [[[NSMutableDictionary alloc] init] autorelease];
                 [d setObject:[NSNumber numberWithInt:OPCodeIdentify] forKey:@kWSOperation];
                 [d setObject:[NSNumber numberWithBool:NO] forKey:@"compress"];
-                NSMutableDictionary *data = [[NSMutableDictionary alloc] init];
+                NSMutableDictionary *data = [[[NSMutableDictionary alloc] init] autorelease];
                 [data setObject:[NSString stringWithString:token] forKey:@"token"];
                 
-                NSMutableDictionary *platformProps = [[NSMutableDictionary alloc] init];
+                NSMutableDictionary *platformProps = [[[NSMutableDictionary alloc] init] autorelease];
                 [platformProps setObject:@"Apple macOS" forKey:@"$os"];
                 [platformProps setObject:@"Apple macOS" forKey:@"$browser"];
                 [platformProps setObject:@"Apple Mac" forKey:@"$device"];
                 [data setObject:platformProps forKey:@"properties"];
                 
-                NSMutableDictionary *presence = [[NSMutableDictionary alloc] init];
+                NSMutableDictionary *presence = [[[NSMutableDictionary alloc] init] autorelease];
                 [presence setObject:@"online" forKey:@"status"];
                 [presence setObject:[NSNumber numberWithInt:0] forKey:@"since"];
-                [presence setObject:[[NSArray alloc] init] forKey:@"activities"];
+                [presence setObject:[[[NSArray alloc] init] autorelease] forKey:@"activities"];
                 [presence setObject:[NSNumber numberWithBool:NO] forKey:@"afk"];
                 
                 [data setObject:presence forKey:@"presence"];
                 
                 [d setObject:data forKey:@kWSData];
-                NSString *str = [[NSString alloc] initWithData:[[CJSONSerializer serializer] serializeDictionary:d error:nil] encoding:NSUTF8StringEncoding];
+                NSString *str = [[[NSString alloc] initWithData:[[CJSONSerializer serializer] serializeDictionary:d error:nil] encoding:NSUTF8StringEncoding] autorelease];
                 [webSocket sendText:str];
             }
             
@@ -197,6 +197,13 @@ static DLWSController* sharedObject = nil;
             heartbeatResponseReceived = YES;
             break;
     }
+}
+
+- (void)dealloc {
+    [webSocket release];
+    [token release];
+    [sessionID release];
+    [super dealloc];
 }
 
 @end

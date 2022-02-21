@@ -54,3 +54,12 @@ typedef enum {
 -(void)setDownloadingFile:(NSFileHandle *)inDownloadingFile;
 
 @end
+
+/// A tracker for clearing the delegates of all outstanding requests on dealloc
+@interface AsyncHTTPRequestTracker : NSObject {
+    NSMutableSet *_requests;
+}
+- (void)addRequest:(AsyncHTTPRequest *)request;
+- (void)removeRequest:(AsyncHTTPRequest *)request;
+- (NSSet *)requests;
+@end

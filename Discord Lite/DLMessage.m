@@ -129,10 +129,14 @@
 }
 
 -(void)dealloc {
-    [author release];
-    [mentionedUsers release];
+    [messageID release];
     [content release];
+    [channelID release];
+    [serverID release];
+    [author release];
     [attachments release];
+    [timestamp release];
+    [mentionedUsers release];
     [referencedMessage release];
     [super dealloc];
 }

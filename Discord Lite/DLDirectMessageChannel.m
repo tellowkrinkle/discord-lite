@@ -33,15 +33,18 @@
         [rec addObject:user];
         [user release];
     }
+    [recipients release];
     recipients = rec;
     [self setUpdateTimestamp];
-    
+
+    [imageData release];
     if (recipients.count == 1) {
-        imageData = [[recipients objectAtIndex:0] avatarImageData];
+        imageData = [[[recipients objectAtIndex:0] avatarImageData] retain];
     } else if (recipients.count > 1) {
         imageData = [[NSData alloc] initWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"discord_group.png"]];
     }
-    
+
+    [subImageData release];
     if (recipients.count > 1) {
         subImageData = [[NSData alloc] initWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"f5k.png"]];
     } else if (recipients.count == 1) {
@@ -146,7 +149,8 @@
 
 -(void)user:(DLUser *)u avatarDidUpdateWithData:(NSData *)data {
     if (recipients.count == 1) {
-        imageData = data;
+        [imageData release];
+        imageData = [data retain];
         [delegate channel:self imageDidUpdateWithData:data];
     }
 }

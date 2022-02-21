@@ -14,6 +14,7 @@
     self = [super init];
     type = AttachmentTypeImage;
     maxScaledWidth = 275.0;
+    outstandingRequests = [[AsyncHTTPRequestTracker alloc] init];
     return self;
 }
 -(id)initWithDict:(NSDictionary *)d {
@@ -38,31 +39,37 @@
 }
 
 -(void)loadScaledData {
-    req = [[AsyncHTTPGetRequest alloc] init];
+    AsyncHTTPGetRequest* req = [[AsyncHTTPGetRequest alloc] init];
     [req setDelegate:self];
     [req setUrl:[NSURL URLWithString:[proxyURL stringByAppendingString:[NSString stringWithFormat:@"?width=%ld&height=%ld", (NSInteger)[self scaledWidth], (NSInteger)[self scaledHeight]]]]];
     [req setCached:NO];
     [req setIdentifier:AttachmentRequestPreview];
     [req start];
+    [outstandingRequests addRequest:req];
+    [req release];
 }
 -(void)loadFullData {
-    req = [[AsyncHTTPGetRequest alloc] init];
+    AsyncHTTPGetRequest* req = [[AsyncHTTPGetRequest alloc] init];
     [req setDelegate:self];
     [req setUrl:[NSURL URLWithString:proxyURL]];
     [req setCached:NO];
     [req setIdentifier:AttachmentRequestFull];
     [req start];
+    [outstandingRequests addRequest:req];
+    [req release];
 }
 -(void)downloadToPath:(NSString *)path {
     [[NSFileManager defaultManager] createFileAtPath:path contents:nil attributes:nil];
     downloadFileHandle = [[NSFileHandle fileHandleForUpdatingAtPath:path] retain];
-    req = [[AsyncHTTPGetRequest alloc] init];
+    AsyncHTTPGetRequest* req = [[AsyncHTTPGetRequest alloc] init];
     [req setDelegate:self];
     [req setUrl:[NSURL URLWithString:url]];
     [req setCached:NO];
     [req setDownloadingFile:downloadFileHandle];
     [req setIdentifier:AttachmentRequestDownload];
     [req start];
+    [outstandingRequests addRequest:req];
+    [req release];
 }
 -(void)saveToPath:(NSString *)path {
     [attachmentData writeToFile:path atomically:YES];
@@ -166,11 +173,15 @@
 }
 
 -(void)dealloc {
-    [req setDelegate:nil];
-    [self setPreviewDelegate:nil];
-    [self setViewerDelegate:nil];
+    [attachmentID release];
+    [filename release];
+    [url release];
+    [proxyURL release];
     [attachmentData release];
     [scaledAttachmentData release];
+    [mimeType release];
+    [downloadFileHandle release];
+    [outstandingRequests release];
     [super dealloc];
 }
 
@@ -194,8 +205,6 @@
             [previewDelegate attachmentDownloadDidComplete:self];
         }
     }
-    [request release];
-    req = nil;
 }
 
 -(void)responseDataDidUpdateWithSize:(NSInteger)size {

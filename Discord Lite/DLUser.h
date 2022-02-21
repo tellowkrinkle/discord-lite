@@ -29,9 +29,9 @@
     NSString *avatarID;
     NSData *avatarImageData;
     NSString *discriminator;
-    AsyncHTTPRequest *req;
     NSTimer *typingTimer;
     BOOL typing;
+    AsyncHTTPRequestTracker *outstandingRequests;
     id<DLUserDelegate> delegate;
     id<DLUserTypingDelegate> typingDelegate;
 }

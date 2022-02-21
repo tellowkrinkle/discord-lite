@@ -17,6 +17,7 @@ static DLController* sharedObject = nil;
     [[DLWSController sharedInstance] setDelegate:self];
     loadedChannels = [[NSMutableDictionary alloc] init];
     loadedServers = [[NSMutableDictionary alloc] init];
+    outstandingRequests = [[AsyncHTTPRequestTracker alloc] init];
     [self loadUserDefaults];
     return self;
 }
@@ -68,6 +69,8 @@ static DLController* sharedObject = nil;
     
     [req setUrl:[NSURL URLWithString:[@API_ROOT stringByAppendingPathComponent:@"auth/login"]]];
     [req start];
+    [outstandingRequests addRequest:req];
+    [req release];
 }
 
 -(void)loginWithTwoFactorAuthCode:(NSString *)twoFactorCode {
@@ -79,6 +82,8 @@ static DLController* sharedObject = nil;
     
     [req setUrl:[NSURL URLWithString:[@API_ROOT stringByAppendingPathComponent:@"auth/mfa/totp"]]];
     [req start];
+    [outstandingRequests addRequest:req];
+    [req release];
 }
 
 -(void)loadMessagesForChannel:(DLChannel *)c beforeMessage:(DLMessage *)m quantity:(NSInteger)numMsgs {
@@ -103,6 +108,8 @@ static DLController* sharedObject = nil;
     }
     [req setUrl:[NSURL URLWithString:requestURL]];
     [req start];
+    [outstandingRequests addRequest:req];
+    [req release];
 }
 
 -(void)sendMessage:(DLMessage *)m toChannel:(DLChannel *)c {
@@ -123,6 +130,8 @@ static DLController* sharedObject = nil;
     NSString *requestURL = [@API_ROOT stringByAppendingPathComponent:[NSString stringWithFormat:@"channels/%@/messages", c.channelID]];
     [req setUrl:[NSURL URLWithString:requestURL]];
     [req start];
+    [outstandingRequests addRequest:req];
+    [req release];
 }
 
 -(void)acknowledgeMessage:(DLMessage *)m {
@@ -134,6 +143,8 @@ static DLController* sharedObject = nil;
     NSString *requestURL = [@API_ROOT stringByAppendingPathComponent:[NSString stringWithFormat:@"channels/%@/messages/%@/ack", [m channelID], [m messageID]]];
     [req setUrl:[NSURL URLWithString:requestURL]];
     [req start];
+    [outstandingRequests addRequest:req];
+    [req release];
 }
 
 -(void)logOutUser {
@@ -145,6 +156,8 @@ static DLController* sharedObject = nil;
     NSString *requestURL = [@API_ROOT stringByAppendingPathComponent:@"auth/logout"];
     [req setUrl:[NSURL URLWithString:requestURL]];
     [req start];
+    [outstandingRequests addRequest:req];
+    [req release];
 }
 
 -(void)informTypingInChannel:(DLChannel *)c {
@@ -156,10 +169,12 @@ static DLController* sharedObject = nil;
     NSString *requestURL = [@API_ROOT stringByAppendingPathComponent:[NSString stringWithFormat:@"channels/%@/typing", [c channelID]]];
     [req setUrl:[NSURL URLWithString:requestURL]];
     [req start];
+    [outstandingRequests addRequest:req];
+    [req release];
 }
 
 -(NSArray *)userServers {
-    NSMutableArray *servers = [[NSMutableArray alloc] init];
+    NSMutableArray *servers = [[[NSMutableArray alloc] init] autorelease];
     NSEnumerator *e = [[myUserSettings serverPositions] objectEnumerator];
     NSString *serverID;
     while (serverID = [e nextObject]) {
@@ -299,6 +314,20 @@ static DLController* sharedObject = nil;
     [[DLWSController sharedInstance] queryServer:s forMembersContainingUsername:username];
 }
 
+- (void)dealloc {
+    [token release];
+    [twoFactorTicket release];
+    [captchaKey release];
+    [selectedServer release];
+    [myServerItem release];
+    [selectedChannel release];
+    [myUser release];
+    [myUserSettings release];
+    [loadedServers release];
+    [loadedChannels release];
+    [outstandingRequests release];
+    [super dealloc];
+}
 
 #pragma mark Response Handlers
 
@@ -460,7 +489,7 @@ static DLController* sharedObject = nil;
         default:
             break;
     }
-    [request release];
+    [outstandingRequests removeRequest:request];
 }
 
 #pragma mark Websocket Delegated Functions

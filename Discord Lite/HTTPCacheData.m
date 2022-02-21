@@ -32,4 +32,9 @@
     data = inData;
 }
 
+- (void)dealloc {
+    [url release];
+    [data release];
+    [super dealloc];
+}
 @end

@@ -37,4 +37,9 @@ static HTTPCache* sharedObject = nil;
     }
 }
 
+- (void)dealloc {
+    [cacheData release];
+    [super dealloc];
+}
+
 @end

@@ -47,8 +47,8 @@ typedef enum {
     CGFloat maxScaledWidth;
     NSInteger fileSize;
     AttachmentType type;
-    AsyncHTTPRequest *req;
     NSFileHandle *downloadFileHandle;
+    AsyncHTTPRequestTracker *outstandingRequests;
     id<DLAttachmentViewerDelegate> viewerDelegate;
     id<DLAttachmentPreviewDelegate> previewDelegate;
 }

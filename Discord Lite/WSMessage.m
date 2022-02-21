@@ -59,4 +59,10 @@
     text = inText;
 }
 
+- (void)dealloc {
+    [data release];
+    [text release];
+    [super dealloc];
+}
+
 @end

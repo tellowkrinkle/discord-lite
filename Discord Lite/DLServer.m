@@ -15,6 +15,7 @@
     self = [super init];
     mentionCount = 0;
     serverID = @"";
+    outstandingRequests = [[AsyncHTTPRequestTracker alloc] init];
     return self;
 }
 
@@ -44,6 +45,8 @@
         [req setUrl:[NSURL URLWithString:[@IconCDNRoot stringByAppendingPathComponent:[NSString stringWithFormat:@"%@/%@.png", serverID, iconID]]]];
         [req setCached:YES];
         [req start];
+        [outstandingRequests addRequest:req];
+        [req release];
     }
 }
 -(NSString *)serverID {
@@ -127,6 +130,16 @@
     return [serverID isEqualToString:[object serverID]];
 }
 
+- (void)dealloc {
+    [serverID release];
+    [name release];
+    [iconID release];
+    [iconImageData release];
+    [members release];
+    [outstandingRequests release];
+    [super dealloc];
+}
+
 #pragma mark Delegated Functions
 
 -(void)requestDidFinishLoading:(AsyncHTTPRequest *)request {
@@ -135,7 +148,7 @@
         iconImageData = [[request responseData] retain];
         [delegate iconDidUpdateWithData:[request responseData]];
     }
-    [request release];
+    [outstandingRequests removeRequest:request];
 }
 
 @end

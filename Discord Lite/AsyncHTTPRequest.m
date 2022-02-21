@@ -70,6 +70,8 @@
 }
 -(void)setDownloadingFile:(NSFileHandle *)inDownloadingFile {
     isFileDownload = YES;
+    [downloadingFile release];
+    [inDownloadingFile retain];
     downloadingFile = inDownloadingFile;
 }
 
@@ -150,7 +152,42 @@
 
 -(void)dealloc {
     [url release];
+    [headers release];
     [responseData release];
+    [downloadingFile release];
+    [super dealloc];
+}
+
+@end
+
+@implementation AsyncHTTPRequestTracker
+
+- (id)init {
+    self = [super init];
+    if (self) {
+        _requests = [[NSMutableSet alloc] init];
+    }
+    return self;
+}
+
+- (void)addRequest:(AsyncHTTPRequest *)request {
+    [_requests addObject:request];
+}
+- (void)removeRequest:(AsyncHTTPRequest *)request {
+    [request setDelegate:nil];
+    [_requests removeObject:request];
+}
+- (NSSet *)requests {
+    return _requests;
+}
+
+- (void)dealloc {
+    NSEnumerator* enumerator = [_requests objectEnumerator];
+    AsyncHTTPRequest* request;
+    while (request = [enumerator nextObject]) {
+        [request setDelegate:nil];
+    }
+    [_requests release];
     [super dealloc];
 }
 

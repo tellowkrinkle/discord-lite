@@ -137,7 +137,7 @@ static const short _base64DecodingTable[256] = {
 		}
 	}
     
-	NSString *strToReturn = [[NSString alloc] initWithBytesNoCopy:strResult length:objPointer - strResult encoding:NSASCIIStringEncoding freeWhenDone:YES];
+	NSString *strToReturn = [[[NSString alloc] initWithBytesNoCopy:strResult length:objPointer - strResult encoding:NSASCIIStringEncoding freeWhenDone:YES] autorelease];
 	return strToReturn;
 }
 

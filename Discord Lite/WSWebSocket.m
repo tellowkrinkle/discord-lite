@@ -188,7 +188,7 @@ static const NSUInteger WSHTTPCode101 = 101;
     outputStream = ( NSOutputStream *)writeStream;
 
     
-    NSDictionary *d = [[NSDictionary alloc] initWithObjects:[NSArray arrayWithObjects:[NSNumber numberWithBool:YES], [NSNumber numberWithBool:YES], [NSNumber numberWithBool:NO], nil] forKeys:[NSArray arrayWithObjects:(NSString *)kCFStreamSSLAllowsExpiredCertificates, (NSString *)kCFStreamSSLAllowsExpiredRoots, (NSString *)kCFStreamSSLValidatesCertificateChain, nil]];
+    NSDictionary *d = [[[NSDictionary alloc] initWithObjects:[NSArray arrayWithObjects:[NSNumber numberWithBool:YES], [NSNumber numberWithBool:YES], [NSNumber numberWithBool:NO], nil] forKeys:[NSArray arrayWithObjects:(NSString *)kCFStreamSSLAllowsExpiredCertificates, (NSString *)kCFStreamSSLAllowsExpiredRoots, (NSString *)kCFStreamSSLValidatesCertificateChain, nil]] autorelease];
     
     if ([hostURL.scheme isEqualToString:WSSchemeSecure]) {
         [inputStream setProperty:NSStreamSocketSecurityLevelTLSv1 forKey:NSStreamSocketSecurityLevelKey];
@@ -322,6 +322,7 @@ static const NSUInteger WSHTTPCode101 = 101;
         
         // All data processed
         if (messageProcessor.bytesConstructed == dataReceived.length) {
+            [dataReceived release];
             dataReceived = nil;
             messageProcessor.bytesConstructed = 0;
         }
@@ -388,7 +389,7 @@ static const NSUInteger WSHTTPCode101 = 101;
         [messageProcessor processMessage];
 
         if (!dataToSend) {
-            currentFrame = [messageProcessor nextFrame];
+            currentFrame = [[messageProcessor nextFrame] retain];
             dataToSend = currentFrame.data;
         }
     }
@@ -414,6 +415,8 @@ static const NSUInteger WSHTTPCode101 = 101;
         // All data has been sent
         if (bytesSent == dataToSend.length) {
             bytesSent = 0;
+            [dataToSend release];
+            [currentFrame release];
             dataToSend = nil;
             currentFrame = nil;
         }
@@ -513,7 +516,7 @@ static const NSUInteger WSHTTPCode101 = 101;
     
     CFDataRef messageData = CFHTTPMessageCopySerializedMessage(message);
     dataToSend = (NSData *)messageData;
-    acceptKey = [self acceptKeyFromNonce:nonce];
+    acceptKey = [[self acceptKeyFromNonce:nonce] retain];
     
     CFRelease(message);
     
@@ -633,15 +636,18 @@ static const NSUInteger WSHTTPCode101 = 101;
                 
                 // Analize it
                 [self analyzeResponse:response];
-                
+
                 // Remove the processed handshake data
                 if (dataReceived.length == responseLength) {
+                    [dataReceived release];
                     dataReceived = nil;
                 }
                 // The remaining bytes are preserved
                 else {
                     dataBytes += responseLength;
-                    dataReceived = [[NSMutableData alloc] initWithBytes:dataBytes length:dataReceived.length - responseLength];
+                    NSMutableData* tmp = [[NSMutableData alloc] initWithBytes:dataBytes length:dataReceived.length - responseLength];
+                    [dataReceived release];
+                    dataReceived = tmp;
                 }
             }
             
@@ -683,6 +689,7 @@ static const NSUInteger WSHTTPCode101 = 101;
     message.data = data;
 
     [messageProcessor queueMessage:message];
+    [message release];
     [self sendData];
 }
 
@@ -693,6 +700,7 @@ static const NSUInteger WSHTTPCode101 = 101;
     message.text = text;
     
     [messageProcessor queueMessage:message];
+    [message release];
     [self sendData];
 }
 
@@ -759,6 +767,21 @@ static const NSUInteger WSHTTPCode101 = 101;
     //NSAssert(state == WSWebSocketStateConnecting, @"Requests can only be sent during connecting.");
     //[self performSelector:@selector(threadedSendRequest:) onThread:wsThread withObject:request waitUntilDone:NO];
     [self threadedSendRequest:request];
+}
+
+- (void)dealloc {
+    [hostURL release];
+    [selectedProtocol release];
+    [protocols release];
+    [inputStream release];
+    [outputStream release];
+    [dataReceived release];
+    [dataToSend release];
+    [acceptKey release];
+    [messageProcessor release];
+    [currentFrame release];
+    [closingReason release];
+    [super dealloc];
 }
 
 @end

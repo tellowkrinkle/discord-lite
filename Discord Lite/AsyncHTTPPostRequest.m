@@ -88,4 +88,11 @@
     files = inFiles;
 }
 
+- (void)dealloc {
+    [parameters release];
+    [files release];
+    [method release];
+    [super dealloc];
+}
+
 @end

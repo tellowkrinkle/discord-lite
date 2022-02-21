@@ -61,6 +61,7 @@ typedef enum {
     DLUserSettings *myUserSettings;
     NSMutableDictionary *loadedServers;
     NSMutableDictionary *loadedChannels;
+    AsyncHTTPRequestTracker *outstandingRequests;
 }
 
 -(DLServer *)selectedServer;

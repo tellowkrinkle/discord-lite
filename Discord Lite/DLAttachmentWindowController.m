@@ -83,6 +83,7 @@
 -(void)dealloc {
     [viewedAttachment setViewerDelegate:nil];
     [viewedAttachment release];
+    [contextMenu release];
     [super dealloc];
 }
 
@@ -101,12 +102,12 @@
 
 -(void)mouseWasDepressedWithEvent:(NSEvent *)event {
     if ((event.modifierFlags & NSControlKeyMask) == NSControlKeyMask) {
-        [NSMenu popUpContextMenu:contextMenu withEvent:event forView:nil];
+        [NSMenu popUpContextMenu:contextMenu withEvent:event forView:attachmentTemplateView];
     }
 }
 
 -(void)mouseRightButtonWasDepressedWithEvent:(NSEvent *)event {
-    [NSMenu popUpContextMenu:contextMenu withEvent:event forView:nil];
+    [NSMenu popUpContextMenu:contextMenu withEvent:event forView:attachmentTemplateView];
 }
 
 @end

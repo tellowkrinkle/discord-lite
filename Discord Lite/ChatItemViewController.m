@@ -169,6 +169,7 @@ const NSInteger ATTACHMENT_SPACING = 15;
 -(void)dealloc {
     [attachmentViews release];
     [representedObject release];
+    [contextMenu release];
     [self.view release];
     [super dealloc];
 }

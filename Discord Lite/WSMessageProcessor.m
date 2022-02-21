@@ -87,7 +87,7 @@
         isNewMessage = YES;
     }
     
-    WSMessage *currentMessage;
+    WSMessage *currentMessage = nil;
     
     uint8_t *dataBytes = (uint8_t *)[data bytes];
     dataBytes += bytesConstructed;
@@ -192,7 +192,7 @@
                     uint16_t *code16 = (uint16_t *)payloadData;
                     code = CFSwapInt16BigToHost(*code16);
                     payloadData += 2;
-                    currentMessage.text = [[NSString alloc] initWithBytes:payloadData length:payloadLength - 2 encoding:NSUTF8StringEncoding];
+                    currentMessage.text = [[[NSString alloc] initWithBytes:payloadData length:payloadLength - 2 encoding:NSUTF8StringEncoding] autorelease];
                     
                     // Invalid UTF8 message
                     if (!currentMessage.text && payloadLength > 2) {
@@ -225,7 +225,7 @@
             
             // Text message
             if (messageConstructed.opcode == WSWebSocketOpcodeText) {
-                messageConstructed.text = [[NSString alloc] initWithData:constructedData encoding:NSUTF8StringEncoding];
+                messageConstructed.text = [[[NSString alloc] initWithData:constructedData encoding:NSUTF8StringEncoding] autorelease];
                 
                 // Invalid UTF8 message
                 if (!messageConstructed.text && constructedData.length) {
@@ -239,6 +239,7 @@
 
             currentMessage = messageConstructed;
             messageConstructed = nil;
+            [constructedData release];
             constructedData = nil;
         }
     }
@@ -250,7 +251,7 @@
 
 - (void)queueMessage:(WSMessage *)message {
     if (message.text) {
-        message.data = [[message.text dataUsingEncoding:NSUTF8StringEncoding] retain];
+        message.data = [message.text dataUsingEncoding:NSUTF8StringEncoding];
         message.text = nil;
     }
 
@@ -260,7 +261,7 @@
 
 - (void)scheduleNextMessage {
     if (!messageProcessed && messagesToSend.count) {
-        messageProcessed = [messagesToSend objectAtIndex:0];
+        messageProcessed = [[messagesToSend objectAtIndex:0] retain];
         [messagesToSend removeObjectAtIndex:0];
     }
 }
@@ -285,9 +286,11 @@
     WSFrame *frame = [[WSFrame alloc] initWithOpcode:opcode data:data maxSize:fragmentSize];
     bytesProcessed += frame.payloadLength;
     [self queueFrame:frame];
+    [frame release];
     
     // All has been processed
     if (messageProcessed.data.length == bytesProcessed) {
+        [messageProcessed release];
         messageProcessed = nil;
         bytesProcessed = 0;
     }
@@ -315,12 +318,21 @@
 
 - (WSFrame *)nextFrame {
     if (framesToSend.count) {
-        WSFrame *nextFrame = [framesToSend objectAtIndex:0];
+        WSFrame *nextFrame = [[[framesToSend objectAtIndex:0] retain] autorelease];
         [framesToSend removeObjectAtIndex:0];
         return nextFrame;
     }
     
     return nil;
+}
+
+- (void)dealloc {
+    [messagesToSend release];
+    [framesToSend release];
+    [messageConstructed release];
+    [messageProcessed release];
+    [constructedData release];
+    [super dealloc];
 }
 
 @end

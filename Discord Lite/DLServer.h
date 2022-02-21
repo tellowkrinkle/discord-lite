@@ -25,6 +25,7 @@
     NSData *iconImageData;
     NSInteger mentionCount;
     NSMutableArray *members;
+    AsyncHTTPRequestTracker *outstandingRequests;
     id<DLServerDelegate> delegate;
 }
 

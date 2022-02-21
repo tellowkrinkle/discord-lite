@@ -91,4 +91,12 @@
 - (NSComparisonResult)compare:(DLChannel *)o {
     return NSOrderedSame;
 }
+- (void)dealloc {
+    [channelID release];
+    [imageData release];
+    [subImageData release];
+    [name release];
+    [lastMessageID release];
+    [super dealloc];
+}
 @end

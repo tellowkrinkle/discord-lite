@@ -16,6 +16,7 @@ const NSTimeInterval TYPING_INTERVAL = 10.0;
     self = [super init];
     typing = NO;
     avatarImageData = [[NSData dataWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"discord_placeholder.png"]] retain];
+    outstandingRequests = [[AsyncHTTPRequestTracker alloc] init];
     return self;
 }
 -(id)initWithDict:(NSDictionary *)d {
@@ -37,11 +38,13 @@ const NSTimeInterval TYPING_INTERVAL = 10.0;
 
 -(void)loadAvatarData {
     if (avatarID && ![avatarID isKindOfClass:[NSNull class]]) {
-        req = [[AsyncHTTPGetRequest alloc] init];
+        AsyncHTTPGetRequest* req = [[AsyncHTTPGetRequest alloc] init];
         [req setDelegate:self];
         [req setUrl:[NSURL URLWithString:[@AvatarCDNRoot stringByAppendingPathComponent:[NSString stringWithFormat:@"%@/%@.png?size=128", userID, avatarID]]]];
         [req setCached:YES];
         [req start];
+        [outstandingRequests addRequest:req];
+        [req release];
     }
 }
 -(NSString *)userID {
@@ -86,10 +89,13 @@ const NSTimeInterval TYPING_INTERVAL = 10.0;
 }
 
 -(void)dealloc {
-    
+    [userID release];
+    [username release];
+    [avatarID release];
     [avatarImageData release];
-    [self setDelegate:nil];
-    [req setDelegate:nil];
+    [discriminator release];
+    [typingTimer release];
+    [outstandingRequests release];
     [super dealloc];
 }
 
@@ -102,8 +108,7 @@ const NSTimeInterval TYPING_INTERVAL = 10.0;
         avatarImageData = [[request responseData] retain];
         [delegate user:self avatarDidUpdateWithData:avatarImageData];
     }
-    [request release];
-    req = nil;
+    [outstandingRequests removeRequest:request];
 }
 
 @end
