@@ -32,4 +32,4 @@ jobs:
           </plist>
           EOF
 
-          xcodebuild ARCHS="ppc x86_64" clean build && exit ${PIPESTATUS[0]}
+          xcodebuild ARCHS="ppc x86_64" USE_LLVM_TARGET_TRIPLES_FOR_LD=NO clean build && exit ${PIPESTATUS[0]}
